@@ -21,9 +21,14 @@ class Input(tk.Frame):
 
         label_es = []
         label_ns = []
+        label_es.append(tk.Label(self, text="E\u03b1\u2081"))
+        label_es.append(tk.Label(self, text="E\u03b1\u2082"))
+        label_es.append(tk.Label(self, text="E\u03b1\u2083"))
+        label_ns.append(tk.Label(self, text="n\u03b1\u2081"))
+        label_ns.append(tk.Label(self, text="n\u03b1\u2082"))
+        label_ns.append(tk.Label(self, text="n\u03b1\u2083"))
+
         for i in range(1, 4):
-            label_es.append(tk.Label(self, text="E{}".format(i)))
-            label_ns.append(tk.Label(self, text="n{}".format(i)))
             self.entry_es.append(tk.Entry(self, width=10))
             self.entry_ns.append(tk.Entry(self, width=10))
             # 测试数据
