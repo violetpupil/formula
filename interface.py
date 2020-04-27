@@ -2,6 +2,9 @@ import threading
 import tkinter as tk
 from tkinter import messagebox
 
+from openpyxl import Workbook
+from openpyxl.styles import Alignment
+
 from formula import solve_equation_set
 
 
@@ -163,6 +166,7 @@ class Output(tk.Frame):
         self.canvas.create_window((0, 0), window=self.frame, anchor='nw')
         self.frame.bind("<Configure>", self.on_frame_configure)
 
+        self.table_heads = ["Case no.", "E", "n", "w", "a", "b", "En1&Eg1", "En2&Eg2", "En3&Eg3", "Standard deviation"]
         self.interface()
 
     def interface(self):
@@ -171,13 +175,12 @@ class Output(tk.Frame):
 
         # 第一行
         tk.Button(
-            self.frame, text="导出计算结果到Excel文件", command=None,
+            self.frame, text="导出计算结果到Excel文件", command=self.export_to_excel,
             width=140, relief=tk.GROOVE, overrelief=tk.SUNKEN,
         ).grid(row=0, column=0, columnspan=10, pady=5)
 
         # 第二行
-        table_heads = ["Case no.", "E", "n", "w", "a", "b", "En1&Eg1", "En2&Eg2", "En3&Eg3", "Standard deviation"]
-        for i, table_head in enumerate(table_heads):
+        for i, table_head in enumerate(self.table_heads):
             tk.Label(self.frame, text=table_head).grid(row=1, column=i, pady=5)
 
         # 第三行
@@ -221,7 +224,7 @@ class Output(tk.Frame):
             e_list, n_list, w_list, a_list, b_list = [], [], [], [], []
             for abwne in result[0]:
                 for arg in abwne.keys():
-                    eval("{arg}_list.append(abwne['{arg}'])".format(arg=arg))
+                    eval("{arg}_list.append(str(abwne['{arg}']))".format(arg=arg))
 
             sol1 = ["En={}".format(result[1][0]), "Eg={}".format(result[2][0])]
             sol2 = ["En={}".format(result[1][1]), "Eg={}".format(result[2][1])]
@@ -237,6 +240,35 @@ class Output(tk.Frame):
         Reset the scroll region to encompass the inner frame
         """
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+
+    def export_to_excel(self):
+        wb = Workbook()
+        ws = wb.active
+        ws.append(self.table_heads)
+
+        # 写入计算结果
+        for result in self.results:
+            ws.append(self._flatten_result(result))
+
+        self._set_wrap(ws)
+        wb.save("results.xlsx")
+        messagebox.showinfo(title=window_title, message="导出完成")
+
+    @staticmethod
+    def _flatten_result(result):
+        result_list = list()
+        result_list.append(result[0])
+        for values in result[1:]:
+            result_list.append("\n".join(values))
+        return result_list
+
+    @staticmethod
+    def _set_wrap(ws):
+        # 设置单元格换行
+        alignment = Alignment(wrap_text=True)
+        for row in ws.iter_rows():
+            for column_index in range(len(row)):
+                row[column_index].alignment = alignment
 
 
 window_title = "公式"
